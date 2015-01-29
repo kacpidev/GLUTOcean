@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+packages/
+Ocean/Debug/
+Ocean.opensdf
+Ocean.sdf
