@@ -153,9 +153,10 @@ namespace Scene
 
         for (int i = 1; i < 4; ++i)
         {
+            std::array<float, 2> k = { kZero[0] * pow(-1, i)*0.9, kZero[1] * pow(-1, i+1)*0.7 };
             float omega = (int)(sqrt(G*(i)) / omegaZero)*omegaZero;
             float a = aZero *pow(0.3f, i);
-            std::array<float, 2> k = { kZero[0] * (-i)*0.9, kZero[1] * (i)*0.7 };
+
 
             xz[0] -= (k[0] / magnitude(k)) * a * sin(dotProduct(v, k) - omega*t + phiZero*i*i);
             xz[2] -= (k[1] / magnitude(k)) * a * sin(dotProduct(v, k) - omega*t + phiZero*i*i);
@@ -322,6 +323,22 @@ namespace Scene
                 //std::array<float, 3> n1 = calulateNormal(p1, p3, p2);
                 //std::array<float, 3> n2 = calulateNormal(p2, p1, p4);
 
+#ifndef __SMOTH
+
+                std::array<float, 3> n1 = calulateNormal(p1, p3, p2);
+                std::array<float, 3> n2 = calulateNormal(p2, p1, p4);
+
+                glNormal3f(n1[0], n1[1], n1[2]);
+                glVertex3f(p1[0], p1[1], p1[2]);
+                glVertex3f(p2[0], p2[1], p2[2]);
+                glVertex3f(p3[0], p3[1], p3[2]);
+
+                glNormal3f(n2[0], n2[1], n2[2]);
+                glVertex3f(p2[0], p2[1], p2[2]);
+                glVertex3f(p3[0], p3[1], p3[2]);
+                glVertex3f(p4[0], p4[1], p4[2]);
+
+#else
 
                 std::array<float, 3> n1 = calculateVertexNormal(calulateNormal(p1, p3, p2), calulateNormal(p1, p1A, p3), calulateNormal(p1, p1B, p1A), calulateNormal(p1, p2, p1B));
                 std::array<float, 3> n2 = calculateVertexNormal(calulateNormal(p2, p1, p4), calulateNormal(p2, p2B, p1), calulateNormal(p2, p2A, p2B), calulateNormal(p2, p4, p2A));
@@ -346,6 +363,7 @@ namespace Scene
 
                 glNormal3f(n4[0], n4[1], n4[2]);
                 glVertex3f(p4[0], p4[1], p4[2]);
+#endif
             }
         }
         glEnd();
