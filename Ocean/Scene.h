@@ -6,6 +6,9 @@
 #include <string>
 #include <iostream>
 
+#define WIDTH 640
+#define HEIGHT 640
+
 namespace Scene
 {
     void init(int width, int height, std::string name, int argc, char **argv);

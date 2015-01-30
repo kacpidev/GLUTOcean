@@ -33,5 +33,11 @@
     <ClInclude Include="Utilities.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

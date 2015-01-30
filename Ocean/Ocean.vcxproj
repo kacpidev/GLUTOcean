@@ -74,6 +74,8 @@
     <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="Mouse.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>

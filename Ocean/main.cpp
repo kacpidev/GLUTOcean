@@ -2,8 +2,6 @@
 #include <random>
 #include <time.h>
 
-#define WIDTH 640
-#define HEIGHT 640
 
 int main(int argc, char **argv)
 {

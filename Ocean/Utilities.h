@@ -1,10 +1,19 @@
+#pragma once
+#include <stdlib.h>
+#include <GL\glut.h>
+#include <math.h>
+
+#define PI 3.14
+#define MAX(a,b) (((a) < (b)) ? (a) : (b))
+#define MIN(a,b) (((a) > (b)) ? (a) : (b))
+
 namespace Camera
 {
     /// Position.     
 
-    static float POSITION_X = 13.0f;      // Camera x position.
-    static float POSITION_Y = 30.0f;     // Camera y position.
-    static float POSITION_Z = -35.0f;      // Camera z position.
+    static float POSITION_X = 7.0f;      // Camera x position.
+    static float POSITION_Y = 10.0f;     // Camera y position.
+    static float POSITION_Z = -15.0f;      // Camera z position.
     static float DELTA_X = 0.0f;
     static float DELTA_Y = 0.0f;
     static float DELTA_Z = 0.0f;
@@ -19,7 +28,7 @@ namespace Camera
     /// Rotation
 
     static float ANGLE_X = -150.0f;    // Camera x rotation angle.
-    static float ANGLE_Y = 40.f;    // Camera y rotation angle.
+    static float ANGLE_Y = 80.f;    // Camera y rotation angle.
     static float DELTA_ANGLE_X = 0.0f;      // Camera delta x rotation.
     static float DELTA_ANGLE_Y = 0.0f;      // Camera delta y rotation.
     static float ROTATION_MODIFIER = 0.2f;  // Camera rotation speed modifier.
@@ -31,23 +40,17 @@ namespace Camera
 namespace Light
 {
 
-    // Border values for linear attenuation.
+    // Border values for light color
 
-#define MAX_LINEAR_ATT 0.1f
-#define MIN_LINEAR_ATT 0.008f
+    #define MAX_LIGHT_COL 1.0f
+    #define MIN_LIGHT_COL 0.1f
 
     /// Light source coordinates.
 
     static float POS_X = 0.0f;      // Light x position.
-    static float POS_Y = 20.0f;     // Light y position.
-    static float POS_Z = -50.0f;    // Light z position.
+    static float POS_Y = 5.0f;     // Light y position.
+    static float POS_Z = -5.0f;    // Light z position.
 
-    /// Spot directions.
-
-    static float SPOT_X = 0.0f;     // Spot x direction.
-    static float SPOT_Y = -1.0f;    // Spot y direction.
-    static float SPOT_Z = 1.0f;     // Spot z direction.
-
-    // Light linear attenuation.
-    static float LINEAR_ATT = 0.05f;
+    // Light color.
+    static float LIGHT_COL = 0.5f;
 }
