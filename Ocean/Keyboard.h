@@ -6,6 +6,8 @@
 #define KEY_EXIT_DEFAULT 27     // Escape key.
 #define KEY_MOVE_FORWARD 'w'
 #define KEY_MOVE_BACKWARD 's'
+#define KEY_MOVE_LEFT 'a'
+#define KEY_MOVE_RIGHT 'd'
 #define KEY_STEER_FORW 'i'
 #define KET_STEER_BACK 'k'
 #define KEY_MOVE_UP GLUT_KEY_UP
@@ -20,9 +22,6 @@ namespace Keyboard
     // Actions binded to key pressed event.
     void handlePressedKey(unsigned char key, int xx, int yy)
     {
-        if (key == 'd')
-            key = 'D';
-
         switch (key)
         {
             // Program termination.
@@ -31,13 +30,24 @@ namespace Keyboard
             break;
 
             // Camera movement bindings.
-        case KEY_MOVE_FORWARD:
-            Camera::DELTA_X = Camera::SPEED;
-            break;
-        case KEY_MOVE_BACKWARD:
-            Camera::DELTA_X = -Camera::SPEED;
-            break;
-
+		case KEY_MOVE_FORWARD:
+			Camera::DELTA_X = Camera::SPEED;
+			break;
+		case KEY_MOVE_BACKWARD:
+			Camera::DELTA_X = -Camera::SPEED;
+			break;
+		case KEY_MOVE_LEFT:
+			Camera::DELTA_Z = -Camera::SPEED;
+			break;
+		case KEY_MOVE_RIGHT:
+			Camera::DELTA_Z = Camera::SPEED;
+			break;
+		case KEY_STEER_FORW:
+			Wind::deltaRot = -ROTATION_SPEED;
+			break;		
+		case KET_STEER_BACK:
+			Wind::deltaRot = ROTATION_SPEED;
+			break;
         default:
             break;
         }
@@ -46,18 +56,21 @@ namespace Keyboard
     // Actions binded to key release event.
     void handleReleasedKey(unsigned char key, int xx, int yy)	// pressing this keys causes moving light source, moving tail, quiting program
     {
-        if (key == 'd')
-            key = 'D';
-
         switch (key)
         {
-
-            // Camera stop movement bindings.
+	        // Camera stop movement bindings.
         case KEY_MOVE_FORWARD:
         case KEY_MOVE_BACKWARD:
             Camera::DELTA_X = 0.0;
             break;
-
+		case KEY_MOVE_LEFT:
+		case KEY_MOVE_RIGHT:
+			Camera::DELTA_Z = 0.0;
+			break;
+		case KEY_STEER_FORW:
+		case KET_STEER_BACK:
+			Wind::deltaRot = 0;
+			break;
         default:
             break;
         }

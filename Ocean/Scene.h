@@ -1,5 +1,6 @@
 #pragma once
 #include <stdlib.h>
+//#include "GLUT.H"
 #include <GL\glut.h>
 #include <chrono>
 #include <thread>

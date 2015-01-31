@@ -2,12 +2,16 @@
 #include "Utilities.h"
 #include "Mouse.h"
 #include "Keyboard.h"
+#include <stdio.h>
 #include <array>
 
-#define RANGE 5
-#define STEP 0.25f
+#define RANGE 4
+#define STEP 0.5f
+#define DRAW 2
 #define __GERSTNER 681
-#define GERSTNER_ITERATIONS 2
+#define LINES 0
+#define SMOOTH 1
+#define GERSTNER_ITERATIONS 5
 #define G 9.81f
 
 namespace Scene
@@ -19,76 +23,61 @@ namespace Scene
     std::string fpsString;
     time_t sleepAvant(0);
 
+    float currentTime;
+
     float omegaZero = 2 * PI / 1000;
     float aZero = 0.4f;
     float phiZero = 0.3f;
-    std::array<float, 2> kZero = { 3.0f, 4.0f };
-
-    GLuint texture = 0;
-
-    //void orthogonalStart()
-    //{
-    //    glMatrixMode(GL_PROJECTION);
-    //    glPushMatrix();
-    //    glLoadIdentity();
-    //    gluOrtho2D(-WIDTH / 2, WIDTH / 2, -HEIGHT / 2, HEIGHT / 2);
-    //    glMatrixMode(GL_MODELVIEW);
-    //}
-
-    //void orthogonalEnd()
-    //{
-    //    glMatrixMode(GL_PROJECTION);
-    //    glPopMatrix();
-    //    glMatrixMode(GL_MODELVIEW);
-    //}
 
 
-    //void background()
-    //{
-    //    glBindTexture(GL_TEXTURE_2D, texture);
+    GLuint LoadTexture(const char * filename)
+    {
 
-    //    orthogonalStart();
+        GLuint texture;
 
-    //    // texture width/height
-    //    const int iw = 500;
-    //    const int ih = 500;
+        int width, height;
 
-    //    glPushMatrix();
-    //    glTranslatef(-iw / 2, -ih / 2, 0);
-    //    glBegin(GL_QUADS);
-    //    glTexCoord2i(0, 0); glVertex2i(0, 0);
-    //    glTexCoord2i(1, 0); glVertex2i(iw, 0);
-    //    glTexCoord2i(1, 1); glVertex2i(iw, ih);
-    //    glTexCoord2i(0, 1); glVertex2i(0, ih);
-    //    glEnd();
-    //    glPopMatrix();
+        unsigned char * data;
 
-    //    orthogonalEnd();
-    //}
+        FILE * file;
+        const char * streamPointer;
+        fopen_s(&file, filename, "rb");
 
-    //GLuint LoadTexture()
-    //{
-    //    unsigned char data[] = { 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255 };
+        if (file == NULL) return 0;
+        width = 1024;
+        height = 1024;
+        data = (unsigned char *)malloc(width * height * 3);
+        //int size = fseek(file,);
+        fread(data, width * height * 3, 1, file);
+        fclose(file);
 
-    //    glGenTextures(1, &texture);
-    //    glBindTexture(GL_TEXTURE_2D, texture);
-    //    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    //    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        for (int i = 0; i < width * height; ++i)
+        {
+            int index = i * 3;
+            unsigned char B, R;
+            B = data[index];
+            R = data[index + 2];
 
-    //    //even better quality, but this will do for now.
-    //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            data[index] = R;
+            data[index + 2] = B;
 
-    //    //to the edge of our shape. 
-    //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    //    //Generate the texture
-    //    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    //    return texture; //return whether it was successful
-    //}
+        }
 
 
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+        free(data);
+
+        return texture;
+    }
     void init(int width, int height, std::string name, int argc, char **argv)
     {
         glutInit(&argc, argv);
@@ -103,7 +92,6 @@ namespace Scene
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_SMOOTH);
         glEnable(GL_BLEND);
-        //texture = LoadTexture();
     }
 
     void launch()
@@ -122,7 +110,7 @@ namespace Scene
 
         glutIgnoreKeyRepeat(GLUT_DEVICE_IGNORE_KEY_REPEAT);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glutReshapeFunc(reshape);
         glutDisplayFunc(draw);
@@ -141,9 +129,7 @@ namespace Scene
 
     std::array<float, 3> gerstner(float x, float y)
     {
-
-        float t = glutGet(GLUT_ELAPSED_TIME) / 5000.0f;
-
+        float t = currentTime;
         std::array<float, 2> v = { x, y };
         std::array<float, 3> xz = { 0.0f, 0.0f, 0.0f };
 
@@ -151,11 +137,11 @@ namespace Scene
         xz[1] = 0.0f;
         xz[2] = v[1];
 
-        for (int i = 1; i < 4; ++i)
+        for (int i = 1; i < GERSTNER_ITERATIONS + 1; ++i)
         {
-            std::array<float, 2> k = { kZero[0] * pow(-1, i)*0.9, kZero[1] * pow(-1, i+1)*0.7 };
+            std::array<float, 2> k = { pow(-0.4, i)*Wind::k[0], pow(-0.4, 1 + i)*Wind::k[1] };
             float omega = (int)(sqrt(G*(i)) / omegaZero)*omegaZero;
-            float a = aZero *pow(0.3f, i);
+            float a = aZero *pow(0.6f, i);
 
 
             xz[0] -= (k[0] / magnitude(k)) * a * sin(dotProduct(v, k) - omega*t + phiZero*i*i);
@@ -166,13 +152,20 @@ namespace Scene
         return xz;
     }
 
+    void updateWind()
+    {
+        Wind::rot += Wind::deltaRot;
+        Wind::k[0] = LENGTH * sin(Wind::rot);
+        Wind::k[1] = LENGTH * cos(Wind::rot);
+    }
+
     void updateCamera()
     {
         if (Camera::DELTA_X || Camera::DELTA_Z || Camera::DELTA_Y)
         {
             Camera::POSITION_X += (Camera::DELTA_X * Camera::DIR_X - Camera::DELTA_Z * Camera::DIR_Z) * 0.1f;
             Camera::POSITION_Y += (Camera::DELTA_X * Camera::DIR_Y - Camera::DELTA_Y) * 0.1f;
-            Camera::POSITION_Z += (Camera::DELTA_X * Camera::DIR_Z - Camera::DELTA_Z * Camera::DIR_X) * 0.1f;
+            Camera::POSITION_Z += (Camera::DELTA_X * Camera::DIR_Z + Camera::DELTA_Z * Camera::DIR_X) * 0.1f;
         }
 
         Camera::DISTANCE = std::sqrt(
@@ -188,6 +181,50 @@ namespace Scene
         glLightfv(GL_LIGHT0, GL_POSITION, pointLightPosition);
     }
 
+    void drawSkybox()
+    {
+        GLint texture = LoadTexture("texture/skybox_texture.bmp");
+        glPushAttrib(GL_ENABLE_BIT);
+        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_BLEND);
+
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        //front
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.5f, 0.25f);  glVertex3f(5.f, -5.f, -5.f);
+        glTexCoord2f(0.25f, 0.25f); glVertex3f(-5.f, -5.f, -5.f);
+        glTexCoord2f(0.25f, 0.5f);  glVertex3f(-5.f, 5.f, -5.f);
+        glTexCoord2f(0.5f, 0.5f);   glVertex3f(5.f, 5.f, -5.f);
+
+        //right
+
+        glTexCoord2f(0.75f, 0.25f); glVertex3f(5.f, -5.f, 5.f);
+        glTexCoord2f(0.5f, 0.25f);  glVertex3f(5.f, -5.f, -5.f);
+        glTexCoord2f(0.5f, 0.5f);   glVertex3f(5.f, 5.f, -5.f);
+        glTexCoord2f(0.75f, 0.5f);  glVertex3f(5.f, 5.f, 5.f);
+
+        //back
+        glTexCoord2f(0.2904f, 1.0f); glVertex3f(-5.f, -5.f, 5.f);
+        glTexCoord2f(0.539f, 1.0f);  glVertex3f(5.f, -5.f, 5.f);
+        glTexCoord2f(0.539f, 0.75f);   glVertex3f(5.f, 5.f, 5.f);
+        glTexCoord2f(0.2904f, 0.75f);   glVertex3f(-5.f, 5.f, 5.f);
+
+        //left
+        glTexCoord2f(0.05f, 0.25f);   glVertex3f(-5.f, -5.f, 5.f);
+        glTexCoord2f(0.25f, 0.25f); glVertex3f(-5.f, -5.f, -5.f);
+        glTexCoord2f(0.25f, 0.5f);  glVertex3f(-5.f, 5.f, -5.f);
+        glTexCoord2f(0.05f, 0.5f);    glVertex3f(-5.f, 5.f, 5.f);
+        glEnd();
+
+        glPopAttrib();
+        glPopMatrix();
+    }
+
     void draw()
     {
         if (glutGet(GLUT_ELAPSED_TIME) - t >= 1000) actionFps();
@@ -195,15 +232,17 @@ namespace Scene
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        //glEnable(GL_TEXTURE_2D);
-
-        //background();
 
         updateCamera();
-
-        gluLookAt(Camera::POSITION_X, Camera::POSITION_Y, Camera::POSITION_Z,
-                  Camera::POSITION_X + Camera::DIR_X, Camera::POSITION_Y + Camera::DIR_Y, Camera::POSITION_Z + Camera::DIR_Z,
+        updateWind();
+        gluLookAt(0, 0, 0,
+                  Camera::DIR_X, Camera::DIR_Y, Camera::DIR_Z,
                   0.0f, 1.0f, 0.0f);
+
+        drawSkybox();
+
+        glTranslatef(-Camera::POSITION_X, -Camera::POSITION_Y, -Camera::POSITION_Z);
+
         updateLights();
 
         drawOcean();
@@ -228,12 +267,11 @@ namespace Scene
         glLoadIdentity();
         glRasterPos2f(550, 460);
 
-        char       buf[15] = "FPS : ";
+        char buf[15] = "FPS : ";
         const char *p(buf);
 
         strcat_s(buf, std::to_string(fps).c_str());
         do glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *p); while (*(++p));
-        //glColor3ub(0, 0, 0);
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
@@ -269,7 +307,6 @@ namespace Scene
         n[1] = u[2] * v[0] - u[0] * v[2];
         n[2] = u[0] * v[1] - u[1] * v[0];
 
-
         return n;
     }
 
@@ -288,42 +325,34 @@ namespace Scene
     {
         glPushMatrix();
 
-        glColor3f(0.2f, 0.8f, 0.9f);
+        currentTime = glutGet(GLUT_ELAPSED_TIME) / 5000.0f;
 
+        glColor3f(0.2f, 0.8f, 0.9f);
+#if (DRAW != LINE)
         glBegin(GL_TRIANGLES);
-        for (float x = -RANGE; x < RANGE; x += STEP)
+#else
+        glBegin(GL_LINE);
+#endif
+        float step = STEP;
+
+        for (float x = -RANGE; x < RANGE; x += step)
         {
-            for (float y = -RANGE; y < RANGE; y += STEP)
+            for (float y = -RANGE; y < RANGE; y += step)
             {
 #ifdef __GERSTNER
                 std::array<float, 3> p1 = gerstner(x, y);
-                std::array<float, 3> p2 = gerstner(x, y + STEP);
-                std::array<float, 3> p3 = gerstner(x + STEP, y);
-                std::array<float, 3> p4 = gerstner(x + STEP, y + STEP);
-
-                std::array<float, 3> p1A = gerstner(x, y - STEP);
-                std::array<float, 3> p1B = gerstner(x - STEP, y);
-
-                std::array<float, 3> p2A = gerstner(x, y + 2 * STEP);
-                std::array<float, 3> p2B = gerstner(x - STEP, y + STEP);
-
-                std::array<float, 3> p3A = gerstner(x + 2 * STEP, y);
-                std::array<float, 3> p3B = gerstner(x + STEP, y - STEP);
-
-                std::array<float, 3> p4A = gerstner(x + 2 * STEP, y + STEP);
-                std::array<float, 3> p4B = gerstner(x + STEP, y + 2 * STEP);
+                std::array<float, 3> p2 = gerstner(x, y + step);
+                std::array<float, 3> p3 = gerstner(x + step, y);
+                std::array<float, 3> p4 = gerstner(x + step, y + step);
 
 #else
                 std::array<float, 3> p1 = { x, 0.0f, y };
-                std::array<float, 3> p2 = { x, 0.0f, y + STEP };
-                std::array<float, 3> p3 = { x + STEP, 0.0f, y };
-                std::array<float, 3> p4 = { x + STEP, 0.0f, y + STEP };
+                std::array<float, 3> p2 = { x, 0.0f, y + step };
+                std::array<float, 3> p3 = { x + step, 0.0f, y };
+                std::array<float, 3> p4 = { x + step, 0.0f, y + step };
 #endif // GRESTNER
 
-                //std::array<float, 3> n1 = calulateNormal(p1, p3, p2);
-                //std::array<float, 3> n2 = calulateNormal(p2, p1, p4);
-
-#ifndef __SMOTH
+#if (DRAW == SMOOTH)
 
                 std::array<float, 3> n1 = calulateNormal(p1, p3, p2);
                 std::array<float, 3> n2 = calulateNormal(p2, p1, p4);
@@ -339,6 +368,31 @@ namespace Scene
                 glVertex3f(p4[0], p4[1], p4[2]);
 
 #else
+#if (DRAW == LINES)
+                glVertex3f(p1[0], p1[1], p1[2]);
+                glVertex3f(p2[0], p2[1], p2[2]);
+
+                glVertex3f(p1[0], p1[1], p1[2]);
+                glVertex3f(p3[0], p3[1], p3[2]);
+
+                glVertex3f(p4[0], p4[1], p4[2]);
+                glVertex3f(p2[0], p2[1], p2[2]);
+
+                glVertex3f(p4[0], p4[1], p4[2]);
+                glVertex3f(p3[0], p3[1], p3[2]);
+
+#else
+                std::array<float, 3> p1A = gerstner(x, y - step);
+                std::array<float, 3> p1B = gerstner(x - step, y);
+
+                std::array<float, 3> p2A = gerstner(x, y + 2 * step);
+                std::array<float, 3> p2B = gerstner(x - step, y + step);
+
+                std::array<float, 3> p3A = gerstner(x + 2 * step, y);
+                std::array<float, 3> p3B = gerstner(x + step, y - step);
+
+                std::array<float, 3> p4A = gerstner(x + 2 * step, y + step);
+                std::array<float, 3> p4B = gerstner(x + step, y + 2 * step);
 
                 std::array<float, 3> n1 = calculateVertexNormal(calulateNormal(p1, p3, p2), calulateNormal(p1, p1A, p3), calulateNormal(p1, p1B, p1A), calulateNormal(p1, p2, p1B));
                 std::array<float, 3> n2 = calculateVertexNormal(calulateNormal(p2, p1, p4), calulateNormal(p2, p2B, p1), calulateNormal(p2, p2A, p2B), calulateNormal(p2, p4, p2A));
@@ -364,11 +418,13 @@ namespace Scene
                 glNormal3f(n4[0], n4[1], n4[2]);
                 glVertex3f(p4[0], p4[1], p4[2]);
 #endif
+
+#endif
             }
         }
         glEnd();
 
-        glColor3f(0.0f, 0.0f, 0.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
 
         glPopMatrix();
     }
@@ -381,7 +437,6 @@ namespace Scene
 
         sleepAvant = deltaTime;
         deltaTime = (int)(((double)(1.0 / fpsGoal) - (double)(1.0 / fps))*pow(10, 3) + sleepAvant) % 1000;
-        printf("%d", deltaTime);
     }
 
     void reshape(int width, int height)

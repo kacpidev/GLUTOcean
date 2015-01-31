@@ -1,6 +1,5 @@
 #pragma once
 #include "Utilities.h"
-
 #define MOUSE_DRAG_BUTTON GLUT_LEFT_BUTTON
 
 namespace Mouse

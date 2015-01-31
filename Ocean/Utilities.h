@@ -1,7 +1,8 @@
 #pragma once
 #include <stdlib.h>
+//#include "GLUT.H"
 #include <GL\glut.h>
-#include <math.h>
+#include <array>
 
 #define PI 3.14
 #define MAX(a,b) (((a) < (b)) ? (a) : (b))
@@ -53,4 +54,15 @@ namespace Light
 
     // Light color.
     static float LIGHT_COL = 0.5f;
+}
+
+namespace Wind
+{
+	#define LENGTH 5.0f
+	#define ROTATION_SPEED .01f;
+
+	static std::array<float, 2> k = { LENGTH, 0 };
+
+	static float deltaRot = 0.0f;
+	static float rot = 0.0f;
 }
